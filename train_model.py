@@ -1,10 +1,13 @@
 import pandas as pd
+import joblib
+
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report
-import joblib
-import os
+
+from xgboost import XGBClassifier
+
+from imblearn.over_sampling import SMOTE
 
 # =========================
 # LOAD DATASET
@@ -12,34 +15,43 @@ import os
 
 df = pd.read_csv("data/winequality.csv", sep=";")
 
+print("\nFirst 5 Rows:\n")
+
 print(df.head())
 
 # =========================
-# CREATE CLASSES
+# CREATE BINARY TARGET
 # =========================
 
-def quality_label(q):
-    if q <= 4:
-        return "Low"
-    elif q <= 6:
-        return "Medium"
-    else:
-        return "High"
+# 0 = Bad Wine
+# 1 = Good Wine
 
-df["quality_label"] = df["quality"].apply(quality_label)
+df["wine_category"] = df["quality"].apply(
+    lambda x: 1 if x >= 7 else 0
+)
+
+# =========================
+# CLASS DISTRIBUTION
+# =========================
+
+print("\nClass Distribution:\n")
+
+print(df["wine_category"].value_counts())
 
 # =========================
 # FEATURES AND TARGET
 # =========================
 
-X = df.drop(["quality", "quality_label"], axis=1)
-y = df["quality_label"]
+X = df.drop(["quality", "wine_category"], axis=1)
+
+y = df["wine_category"]
 
 # =========================
 # FEATURE SCALING
 # =========================
 
 scaler = StandardScaler()
+
 X_scaled = scaler.fit_transform(X)
 
 # =========================
@@ -47,19 +59,54 @@ X_scaled = scaler.fit_transform(X)
 # =========================
 
 X_train, X_test, y_train, y_test = train_test_split(
+
     X_scaled,
     y,
+
     test_size=0.2,
-    random_state=42
+
+    random_state=42,
+
+    stratify=y
+
 )
+
+# =========================
+# APPLY SMOTE
+# =========================
+
+print("\nApplying SMOTE...\n")
+
+smote = SMOTE(random_state=42)
+
+X_train, y_train = smote.fit_resample(X_train, y_train)
+
+print("\nBalanced Class Distribution:\n")
+
+print(pd.Series(y_train).value_counts())
 
 # =========================
 # MODEL TRAINING
 # =========================
 
-model = RandomForestClassifier(
-    n_estimators=200,
-    random_state=42
+print("\nTraining XGBoost Model...\n")
+
+model = XGBClassifier(
+
+    n_estimators=500,
+
+    learning_rate=0.05,
+
+    max_depth=6,
+
+    subsample=0.8,
+
+    colsample_bytree=0.8,
+
+    random_state=42,
+
+    eval_metric='logloss'
+
 )
 
 model.fit(X_train, y_train)
@@ -79,6 +126,7 @@ accuracy = accuracy_score(y_test, y_pred)
 print("\nAccuracy:", accuracy)
 
 print("\nClassification Report:\n")
+
 print(classification_report(y_test, y_pred))
 
 # =========================
@@ -86,6 +134,7 @@ print(classification_report(y_test, y_pred))
 # =========================
 
 joblib.dump(model, "models/wine_model.pkl")
+
 joblib.dump(scaler, "models/scaler.pkl")
 
-print("\nModel saved successfully!")
+print("\nModel Saved Successfully!")
