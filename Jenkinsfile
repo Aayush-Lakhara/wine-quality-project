@@ -4,15 +4,6 @@ pipeline {
 
     stages {
 
-        stage('Clone Repository') {
-
-            steps {
-
-                git 'https://github.com/Aayush-Lakhara/wine-quality-project.git'
-
-            }
-        }
-
         stage('Build Docker Image') {
 
             steps {
@@ -26,7 +17,7 @@ pipeline {
 
             steps {
 
-                bat 'docker tag wine-quality-app Aayush-Lakhara/wine-quality-app'
+                bat 'docker tag wine-quality-app aayush-lakhara/wine-quality-app'
 
             }
         }
@@ -35,11 +26,10 @@ pipeline {
 
             steps {
 
-                bat 'docker push Aayush-Lakhara/wine-quality-app'
+                bat 'docker push aayush-lakhara/wine-quality-app'
 
             }
         }
 
     }
-
 }
