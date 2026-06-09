@@ -17,7 +17,7 @@ pipeline {
 
             steps {
 
-                bat 'docker tag wine-quality-app aayush-lakhara/wine-quality-app'
+                bat 'docker tag wine-quality-app aayush296/wine-quality-app'
 
             }
         }
@@ -26,7 +26,7 @@ pipeline {
 
             steps {
 
-                bat 'docker push aayush-lakhara/wine-quality-app'
+                bat 'docker push aayush296/wine-quality-app'
 
             }
         }
