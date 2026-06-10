@@ -22,6 +22,15 @@ pipeline {
             }
         }
 
+        stage('Docker Login') {
+
+            steps {
+
+                bat 'docker login -u aayush296'
+
+            }
+        }
+
         stage('Push Docker Image') {
 
             steps {
@@ -32,4 +41,5 @@ pipeline {
         }
 
     }
+
 }
